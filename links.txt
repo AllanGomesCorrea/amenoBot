@@ -1,2 +1,4 @@
 https://discordpy.readthedocs.io/en/stable/api.html
 https://www.youtube.com/watch?v=Gt1BmJPme_g
+
+https://discord.com/oauth2/authorize?client_id=1397396082102763664&permissions=8&integration_type=0&scope=bot
