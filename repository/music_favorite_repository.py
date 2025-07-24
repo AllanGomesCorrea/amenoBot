@@ -3,8 +3,8 @@ import os
 import re
 
 def extract_youtube_identifier(url: str) -> str:
-    # Extrai o identificador do YouTube (?v= até & ou fim)
-    match = re.search(r'[?&]v=([\w-]+)', url)
+    # Extrai o identificador do YouTube 
+    match = re.search(r'(?:v=|youtu\.be/|embed/)([a-zA-Z0-9_-]{11})', url)
     if match:
         return match.group(1)
     return url  # fallback: retorna a url inteira se não encontrar
@@ -38,4 +38,4 @@ class MusicFavoriteRepository:
             conn.commit()
             return c.lastrowid
 
-favorite_repo = MusicFavoriteRepository(os.path.join(os.path.dirname(__file__), '../../favorites.db')) 
+favorite_repo = MusicFavoriteRepository(os.path.join(os.path.dirname(__file__), '../favorites.db')) 
