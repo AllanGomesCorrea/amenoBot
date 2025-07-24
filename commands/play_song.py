@@ -4,7 +4,10 @@ from discord.ext import commands
 from discord.ui import View, Button
 import yt_dlp
 import asyncio
-
+from components.star_button import StarButton
+from components.play_pause_button import PlayPauseButton
+from components.skip_button import SkipButton
+from components.queue_button import QueueButton
 # Fila de músicas por guild
 song_queues = {}
 
@@ -31,7 +34,6 @@ async def get_audio_url(youtube_url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(youtube_url, download=False)
         return info['url'], info['title']
-
 class MusicPlayerView(View):
     def __init__(self, interaction, voice_client, queue, history):
         super().__init__(timeout=None)
@@ -39,30 +41,15 @@ class MusicPlayerView(View):
         self.voice_client = voice_client
         self.queue = queue
         self.history = history
+        self.add_item(PlayPauseButton())
+        self.add_item(SkipButton())
+        self.add_item(QueueButton())
+        self.add_item(StarButton(self.get_current_song))
 
-    @discord.ui.button(label="⏯️ Play/Pause", style=discord.ButtonStyle.primary)
-    async def play_pause(self, interaction: discord.Interaction, button: Button):
-        if self.voice_client.is_playing():
-            self.voice_client.pause()
-        elif self.voice_client.is_paused():
-            self.voice_client.resume()
-        await interaction.response.defer()
-
-    @discord.ui.button(label="⏭️ Skip", style=discord.ButtonStyle.secondary)
-    async def skip(self, interaction: discord.Interaction, button: Button):
-        self.voice_client.stop()
-        await interaction.response.defer()
-
-    @discord.ui.button(label="📃 Queue", style=discord.ButtonStyle.secondary)
-    async def show_queue(self, interaction: discord.Interaction, button: Button):
-        if self.queue:
-            queue_titles = [title for _, title, _ in self.queue]
-            queue_text = "\n".join(f"{idx+1}. {title}" for idx, title in enumerate(queue_titles))
-            await interaction.response.send_message(
-                f"**Próximas músicas na fila:**\n{queue_text}", ephemeral=True
-            )
-        else:
-            await interaction.response.send_message("A fila está vazia.", ephemeral=True)
+    def get_current_song(self):
+        if self.history:
+            return self.history[-1]
+        return None
 
 @app_commands.command(name="add_song", description="Toque uma música do YouTube na call com fila e controles.")
 @app_commands.describe(url="Link do YouTube")
@@ -175,7 +162,7 @@ async def exit(interaction: discord.Interaction):
     if not vc:
         await interaction.response.send_message("O bot não está em um canal de voz.", ephemeral=True)
         return
-    await vc.disconnect()
+    await vc.disconnect(force=True)
     song_queues.pop(interaction.guild.id, None)
     song_history.pop(interaction.guild.id, None)
     await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=True) 
