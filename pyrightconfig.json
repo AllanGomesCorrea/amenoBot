@@ -1,5 +1,7 @@
 {
     "venvPath": ".",
     "venv": "venv",
-    "pythonPath": "./venv/bin/python"
+    "pythonPath": "./venv/bin/python",
+    "typeCheckingMode": "basic",
+    "reportAttributeAccessIssue": "none",
 } 

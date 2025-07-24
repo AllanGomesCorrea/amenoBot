@@ -121,7 +121,7 @@ async def play_next_song(interaction, vc, queue, history, loop):
 
     vc.play(source, after=after_playing)
     view = MusicPlayerView(interaction, vc, queue, history)
-    coro = interaction.followup.send(f"Tocando agora: **{title}**", view=view, ephemeral=False)
+    coro = interaction.followup.send(f"Tocando agora: **{title}**\n{url}", view=view, ephemeral=False)
     asyncio.run_coroutine_threadsafe(coro, loop)
 
 @app_commands.command(name="play_pause", description="Alterna entre tocar e pausar a música.")
@@ -159,6 +159,15 @@ async def queue(interaction: discord.Interaction):
         )
     else:
         await interaction.response.send_message("A fila está vazia.", ephemeral=True)
+
+@app_commands.command(name="now_playing", description="Mostra a música que está tocando agora.")
+async def now_playing(interaction: discord.Interaction):
+    history = get_song_history(interaction.guild.id)
+    if history and len(history) > 0:
+        title, url = history[-1]
+        await interaction.response.send_message(f"🎶 Tocando agora: **{title}**\n{url}", ephemeral=True)
+    else:
+        await interaction.response.send_message("Nenhuma música está tocando agora.", ephemeral=True)
 
 @app_commands.command(name="exit", description="Remove o bot do canal de voz e limpa a fila.")
 async def exit(interaction: discord.Interaction):
