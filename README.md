@@ -54,6 +54,11 @@ python main.py
 - `/queue` — Mostra a fila de músicas.
 - `/exit` — Remove o bot do canal de voz e limpa a fila.
 
+### /now_playing
+Mostra a música que está tocando no momento no canal de voz.
+- Exibe o título e o link da música atual.
+- Se não houver música tocando, informa que nenhuma música está tocando agora.
+
 ### Outros
 - `/hello` — Mensagem de boas-vindas.
 
