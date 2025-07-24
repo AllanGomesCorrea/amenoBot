@@ -47,10 +47,6 @@ python main.py
 
 ## 5. Comandos disponíveis
 
-### Gastos
-- `/summary` — Mostra os gastos agrupados por pessoa e permite exportar para Excel.
-- `/total_splited` — Mostra o total por pessoa e quem deve para quem.
-
 ### Música
 - `/add_song <url>` — Adiciona uma música do YouTube à fila e começa a tocar.
 - `/play_pause` — Alterna entre tocar e pausar a música atual.
