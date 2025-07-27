@@ -1,5 +1,5 @@
 from .hello import hello
-from .play_song import add_song, play_pause, skip, queue, exit, now_playing
+from .play_song import add_song, play_pause, skip, queue, exit, now_playing, favorite_playlist
 
 def register_commands(bot):
     bot.tree.add_command(hello)
@@ -9,3 +9,4 @@ def register_commands(bot):
     bot.tree.add_command(queue)
     bot.tree.add_command(exit)
     bot.tree.add_command(now_playing)
+    bot.tree.add_command(favorite_playlist)

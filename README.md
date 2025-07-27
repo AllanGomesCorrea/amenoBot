@@ -49,6 +49,7 @@ python main.py
 
 ### Música
 - `/add_song <url>` — Adiciona uma música do YouTube à fila e começa a tocar.
+- `/favorite_playlist` — Cria uma playlist aleatória com suas músicas favoritas salvas.
 - `/play_pause` — Alterna entre tocar e pausar a música atual.
 - `/skip` — Pula para a próxima música da fila.
 - `/queue` — Mostra a fila de músicas.
@@ -65,6 +66,8 @@ Mostra a música que está tocando no momento no canal de voz.
 ## 6. Observações
 - O bot precisa de permissões de "Conectar" e "Falar" no canal de voz.
 - O bot funciona em múltiplos servidores, cada um com sua própria fila de músicas.
+- Use o botão ⭐ nas músicas para adicioná-las aos favoritos.
+- O comando `/favorite_playlist` busca todas as músicas favoritadas da base de dados e cria uma fila aleatória sem repetições.
 
 ---
 

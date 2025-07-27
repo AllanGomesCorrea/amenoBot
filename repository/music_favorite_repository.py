@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import re
+import random
 
 def extract_youtube_identifier(url: str) -> str:
     # Extrai o identificador do YouTube 
@@ -37,5 +38,23 @@ class MusicFavoriteRepository:
             c.execute('INSERT INTO favorites (identifier, url, title) VALUES (?, ?, ?)', (identifier, url, title))
             conn.commit()
             return c.lastrowid
+
+    def get_all_favorites(self) -> list:
+        """Retorna todas as músicas favoritas da base de dados"""
+        with sqlite3.connect(self.db_path) as conn:
+            c = conn.cursor()
+            c.execute('SELECT identifier, url, title FROM favorites')
+            return c.fetchall()
+
+    def get_random_favorites_playlist(self) -> list:
+        """Retorna uma lista aleatória de todas as músicas favoritas sem repetir"""
+        favorites = self.get_all_favorites()
+        if not favorites:
+            return []
+        
+        # Embaralha a lista de favoritos
+        shuffled_favorites = favorites.copy()
+        random.shuffle(shuffled_favorites)
+        return shuffled_favorites
 
 favorite_repo = MusicFavoriteRepository(os.path.join(os.path.dirname(__file__), '../favorites.db')) 

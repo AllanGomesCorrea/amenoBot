@@ -8,6 +8,7 @@ from components.star_button import StarButton
 from components.play_pause_button import PlayPauseButton
 from components.skip_button import SkipButton
 from components.queue_button import QueueButton
+from repository.music_favorite_repository import favorite_repo
 # Fila de músicas por guild
 song_queues = {}
 
@@ -34,6 +35,7 @@ async def get_audio_url(youtube_url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(youtube_url, download=False)
         return info['url'], info['title']
+
 class MusicPlayerView(View):
     def __init__(self, interaction, voice_client, queue, history):
         super().__init__(timeout=None)
@@ -72,6 +74,42 @@ async def add_song(interaction: discord.Interaction, url: str):
         vc = interaction.guild.voice_client
 
     await interaction.followup.send(f"Adicionado à fila: **{title}**", ephemeral=True)
+
+    bot = interaction.client
+    loop = bot.loop
+
+    if not vc.is_playing() and not vc.is_paused():
+        await play_next_song(interaction, vc, queue, history, loop)
+
+@app_commands.command(name="favorite_playlist", description="Cria uma playlist aleatória com suas músicas favoritas.")
+async def favorite_playlist(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=False)
+    user = interaction.user
+    if not user.voice or not user.voice.channel:
+        await interaction.followup.send("Você precisa estar em um canal de voz!", ephemeral=True)
+        return
+
+    # Busca todas as músicas favoritas de forma aleatória
+    favorites = favorite_repo.get_random_favorites_playlist()
+    
+    if not favorites:
+        await interaction.followup.send("Você não tem músicas favoritas salvas!", ephemeral=True)
+        return
+
+    queue = get_song_queue(interaction.guild.id)
+    history = get_song_history(interaction.guild.id)
+    
+    # Limpa a fila atual e adiciona as músicas favoritas
+    queue.clear()
+    for identifier, url, title in favorites:
+        queue.append((title, url))
+
+    if not interaction.guild.voice_client:
+        vc = await user.voice.channel.connect()
+    else:
+        vc = interaction.guild.voice_client
+
+    await interaction.followup.send(f"🎵 **Playlist de Favoritos criada!**\n📝 **{len(favorites)} músicas** adicionadas à fila de forma aleatória.", ephemeral=True)
 
     bot = interaction.client
     loop = bot.loop
@@ -139,7 +177,7 @@ async def skip(interaction: discord.Interaction):
 async def queue(interaction: discord.Interaction):
     queue = get_song_queue(interaction.guild.id)
     if queue:
-        queue_titles = [title for _, title, _ in queue]
+        queue_titles = [title for title, _ in queue]
         queue_text = "\n".join(f"{idx+1}. {title}" for idx, title in enumerate(queue_titles))
         await interaction.response.send_message(
             f"**Próximas músicas na fila:**\n{queue_text}", ephemeral=True
