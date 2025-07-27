@@ -190,7 +190,9 @@ async def now_playing(interaction: discord.Interaction):
     history = get_song_history(interaction.guild.id)
     if history and len(history) > 0:
         title, url = history[-1]
-        await interaction.response.send_message(f"🎶 Tocando agora: **{title}**\n{url}", ephemeral=True)
+        queue = get_song_queue(interaction.guild.id)
+        view = MusicPlayerView(interaction, interaction.guild.voice_client, queue, history)
+        await interaction.response.send_message(f"🎶 Tocando agora: **{title}**\n{url}", view=view, ephemeral=False)
     else:
         await interaction.response.send_message("Nenhuma música está tocando agora.", ephemeral=True)
 

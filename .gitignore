@@ -24,5 +24,4 @@ ENV/
 
 # Outros
 *.sqlite3
-*.db 
 *.txt
