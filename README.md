@@ -39,6 +39,13 @@ Além disso, instale o **ffmpeg** no seu sistema:
 - **Ubuntu/Debian:** `sudo apt install ffmpeg`
 - **Windows:** [Baixe aqui](https://ffmpeg.org/download.html) e adicione ao PATH
 
+### Opcional: Docker:
+
+```bash
+docker build -t amenobot .
+docker run -d --name amenobot amenobot
+```
+
 ## 4. Execute o bot
 
 ```bash
@@ -78,4 +85,4 @@ Se tiver dúvidas, consulte o código ou abra uma issue!
 ## Autor
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/allancorrea/)
-[![GitHub](https://img.shields.io/badge/GitHub-black?logo=github&logoColor=white)](https://github.com/AllanGomesCorrea) 
+[![GitHub](https://img.shields.io/badge/GitHub-black?logo=github&logoColor=white)](https://github.com/AllanGomesCorrea)
