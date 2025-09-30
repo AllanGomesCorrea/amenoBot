@@ -27,18 +27,10 @@ def get_song_history(guild_id):
 
 async def get_audio_url(youtube_url):
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': True,
+        'format': 'bestaudio[abr<=96]/bestaudio','quiet': True,
         'noplaylist': True,
-        'extract_flat': False,
-        'no_warnings': True,
-        'default_search': 'auto',
-        'source_address': '0.0.0.0',
         'youtube_include_dash_manifest': False,
         'youtube_include_hls_manifest': False,
-        'extractor_retries': 3,
-        'fragment_retries': 3,
-        'retries': 3,
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(youtube_url, download=False)
@@ -213,4 +205,4 @@ async def exit(interaction: discord.Interaction):
     await vc.disconnect(force=True)
     song_queues.pop(interaction.guild.id, None)
     song_history.pop(interaction.guild.id, None)
-    await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=True)
+    await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=True) 

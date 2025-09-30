@@ -7,6 +7,9 @@ from commands import register_commands
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN não encontrado no arquivo .env")
+
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
