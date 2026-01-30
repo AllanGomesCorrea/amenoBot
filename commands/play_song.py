@@ -89,6 +89,35 @@ async def add_song(interaction: discord.Interaction, url: str):
     if not vc.is_playing() and not vc.is_paused():
         await play_next_song(interaction, vc, queue, history, loop)
 
+@app_commands.command(name="play_next", description="Adiciona uma música para tocar em seguida (após a atual).")
+@app_commands.describe(url="Link do YouTube")
+async def play_next(interaction: discord.Interaction, url: str):
+    await interaction.response.defer(ephemeral=False)
+    user = interaction.user
+    if not user.voice or not user.voice.channel:
+        await interaction.followup.send("Você precisa estar em um canal de voz!", ephemeral=True)
+        return
+
+    queue = get_song_queue(interaction.guild.id)
+    history = get_song_history(interaction.guild.id)
+    # Armazene apenas o título e a URL original na fila
+    audio_url, title = await get_audio_url(url)
+    # Insere na posição 0 para tocar em seguida
+    queue.insert(0, (title, url))
+
+    if not interaction.guild.voice_client:
+        vc = await user.voice.channel.connect()
+    else:
+        vc = interaction.guild.voice_client
+
+    await interaction.followup.send(f"Adicionado para tocar em seguida: **{title}**", ephemeral=True)
+
+    bot = interaction.client
+    loop = bot.loop
+
+    if not vc.is_playing() and not vc.is_paused():
+        await play_next_song(interaction, vc, queue, history, loop)
+
 @app_commands.command(name="favorite_playlist", description="Cria uma playlist aleatória com suas músicas favoritas.")
 async def favorite_playlist(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=False)

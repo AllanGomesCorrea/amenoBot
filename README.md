@@ -56,6 +56,7 @@ python main.py
 
 ### Música
 - `/add_song <url>` — Adiciona uma música do YouTube à fila e começa a tocar.
+- `/play_next <url>` — Adiciona uma música para tocar em seguida (após a atual). Útil para interromper a playlist temporariamente.
 - `/favorite_playlist` — Cria uma playlist aleatória com suas músicas favoritas salvas.
 - `/play_pause` — Alterna entre tocar e pausar a música atual.
 - `/skip` — Pula para a próxima música da fila.
