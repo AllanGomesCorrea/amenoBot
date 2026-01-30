@@ -15,6 +15,14 @@ song_queues = {}
 # Histórico de músicas por guild (para skip back)
 song_history = {}
 
+# Lock por guild para evitar play_next_song concorrente (evita skip em cascata)
+play_locks = {}
+
+def get_play_lock(guild_id):
+    if guild_id not in play_locks:
+        play_locks[guild_id] = asyncio.Lock()
+    return play_locks[guild_id]
+
 def get_song_queue(guild_id):
     if guild_id not in song_queues:
         song_queues[guild_id] = []
@@ -155,36 +163,61 @@ async def favorite_playlist(interaction: discord.Interaction):
         await play_next_song(interaction, vc, queue, history, loop)
 
 async def play_next_song(interaction, vc, queue, history, loop):
-    if not queue:
-        await vc.disconnect()
-        return
-    # Pegue o título e a URL original da fila
-    title, url = queue.pop(0)
-    # Re-extraia o link de áudio imediatamente antes de tocar
-    audio_url, _ = await get_audio_url(url)
-    history.append((title, url))
-    
-    ffmpeg_options = {
-        'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        'options': '-vn -c:a libopus -b:a 96k',
-    }
-    
-    source = await discord.FFmpegOpusAudio.from_probe(audio_url, **ffmpeg_options)
-
-    def after_playing(error):
-        fut = asyncio.run_coroutine_threadsafe(
-            play_next_song(interaction, vc, queue, history, loop),
-            loop
-        )
+    guild_id = interaction.guild.id
+    async with get_play_lock(guild_id):
+        if not queue:
+            await vc.disconnect()
+            return
+        # Pegue o título e a URL original da fila
+        title, url = queue.pop(0)
+        # Re-extraia o link de áudio imediatamente antes de tocar
         try:
-            fut.result()
+            audio_url, _ = await get_audio_url(url)
         except Exception as e:
-            print(f"Erro ao tocar próxima música: {e}")
+            print(f"[play_next_song] Erro ao obter áudio para {url}: {e}")
+            asyncio.run_coroutine_threadsafe(
+                play_next_song(interaction, vc, queue, history, loop),
+                loop
+            )
+            return
+        if not audio_url or not audio_url.strip():
+            print(f"[play_next_song] URL de áudio vazia para: {title}")
+            asyncio.run_coroutine_threadsafe(
+                play_next_song(interaction, vc, queue, history, loop),
+                loop
+            )
+            return
+        ffmpeg_options = {
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'options': '-vn -c:a libopus -b:a 96k',
+        }
+        try:
+            source = await discord.FFmpegOpusAudio.from_probe(audio_url, **ffmpeg_options)
+        except Exception as e:
+            print(f"[play_next_song] Erro ao criar fonte para '{title}': {e}")
+            asyncio.run_coroutine_threadsafe(
+                play_next_song(interaction, vc, queue, history, loop),
+                loop
+            )
+            return
+        history.append((title, url))
 
-    vc.play(source, after=after_playing)
-    view = MusicPlayerView(interaction, vc, queue, history)
-    coro = interaction.followup.send(f"Tocando agora: **{title}**\n{url}", view=view, ephemeral=False)
-    asyncio.run_coroutine_threadsafe(coro, loop)
+        def after_playing(error):
+            if error:
+                print(f"[after_playing] Erro na reprodução de '{title}': {error}")
+            fut = asyncio.run_coroutine_threadsafe(
+                play_next_song(interaction, vc, queue, history, loop),
+                loop
+            )
+            try:
+                fut.result()
+            except Exception as e:
+                print(f"Erro ao tocar próxima música: {e}")
+
+        vc.play(source, after=after_playing)
+        view = MusicPlayerView(interaction, vc, queue, history)
+        coro = interaction.followup.send(f"Tocando agora: **{title}**\n{url}", view=view, ephemeral=False)
+        asyncio.run_coroutine_threadsafe(coro, loop)
 
 @app_commands.command(name="play_pause", description="Alterna entre tocar e pausar a música.")
 async def play_pause(interaction: discord.Interaction):
@@ -240,6 +273,8 @@ async def exit(interaction: discord.Interaction):
         await interaction.response.send_message("O bot não está em um canal de voz.", ephemeral=True)
         return
     await vc.disconnect(force=True)
-    song_queues.pop(interaction.guild.id, None)
-    song_history.pop(interaction.guild.id, None)
+    guild_id = interaction.guild.id
+    song_queues.pop(guild_id, None)
+    song_history.pop(guild_id, None)
+    play_locks.pop(guild_id, None)
     await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=True)
