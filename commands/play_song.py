@@ -118,7 +118,7 @@ async def play_next(interaction: discord.Interaction, url: str):
     else:
         vc = interaction.guild.voice_client
 
-    await interaction.followup.send(f"Adicionado para tocar em seguida: **{title}**", ephemeral=True)
+    await interaction.followup.send(f"Adicionado para tocar em seguida: **{title}**", ephemeral=False)
 
     bot = interaction.client
     loop = bot.loop
@@ -138,7 +138,7 @@ async def favorite_playlist(interaction: discord.Interaction):
     favorites = favorite_repo.get_random_favorites_playlist()
     
     if not favorites:
-        await interaction.followup.send("Você não tem músicas favoritas salvas!", ephemeral=True)
+        await interaction.followup.send("Você não tem músicas favoritas salvas!", ephemeral=False)
         return
 
     queue = get_song_queue(interaction.guild.id)
@@ -227,10 +227,10 @@ async def play_pause(interaction: discord.Interaction):
         return
     if vc.is_playing():
         vc.pause()
-        await interaction.response.send_message("Música pausada.", ephemeral=True)
+        await interaction.response.send_message("Música pausada.", ephemeral=False)
     elif vc.is_paused():
         vc.resume()
-        await interaction.response.send_message("Música retomada.", ephemeral=True)
+        await interaction.response.send_message("Música retomada.", ephemeral=False)
     else:
         await interaction.response.send_message("Nenhuma música está tocando.", ephemeral=True)
 
@@ -241,7 +241,7 @@ async def skip(interaction: discord.Interaction):
         await interaction.response.send_message("Nenhuma música está tocando.", ephemeral=True)
         return
     vc.stop()
-    await interaction.response.send_message("Pulando para a próxima música...", ephemeral=True)
+    await interaction.response.send_message("Pulando para a próxima música...", ephemeral=False)
 
 @app_commands.command(name="queue", description="Mostra a fila de músicas.")
 async def queue(interaction: discord.Interaction):
@@ -250,10 +250,26 @@ async def queue(interaction: discord.Interaction):
         queue_titles = [title for title, _ in queue]
         queue_text = "\n".join(f"{idx+1}. {title}" for idx, title in enumerate(queue_titles))
         await interaction.response.send_message(
-            f"**Próximas músicas na fila:**\n{queue_text}", ephemeral=True
+            f"**Próximas músicas na fila:**\n{queue_text}", ephemeral=False
         )
     else:
         await interaction.response.send_message("A fila está vazia.", ephemeral=True)
+
+@app_commands.command(name="remove_song_from_queue", description="Remove uma música da fila pela posição.")
+@app_commands.describe(position="Posição na fila (1 = próxima música a tocar)")
+async def remove_song_from_queue(interaction: discord.Interaction, position: int):
+    queue = get_song_queue(interaction.guild.id)
+    if not queue:
+        await interaction.response.send_message("A fila está vazia.", ephemeral=True)
+        return
+    if position < 1 or position > len(queue):
+        await interaction.response.send_message(
+            f"Posição inválida. Use um número entre 1 e {len(queue)}. Use `/queue` para ver a fila.",
+            ephemeral=True
+        )
+        return
+    title, url = queue.pop(position - 1)
+    await interaction.response.send_message(f"Música removida da fila: **{title}**", ephemeral=False)
 
 @app_commands.command(name="now_playing", description="Mostra a música que está tocando agora.")
 async def now_playing(interaction: discord.Interaction):
@@ -277,4 +293,4 @@ async def exit(interaction: discord.Interaction):
     song_queues.pop(guild_id, None)
     song_history.pop(guild_id, None)
     play_locks.pop(guild_id, None)
-    await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=True)
+    await interaction.response.send_message("Bot removido do canal de voz e fila apagada.", ephemeral=False)
