@@ -9,9 +9,11 @@ COMANDOS = [
     ("play_pause", "Pausa ou retoma a música atual."),
     ("skip", "Pula para a próxima música da fila."),
     ("queue", "Mostra as próximas músicas na fila."),
+    ("filter_queue", "Busca na fila músicas que contêm uma palavra (ex.: gor → Gorillaz)."),
     ("remove_song_from_queue", "Remove uma música da fila pela posição (1 = próxima)."),
     ("now_playing", "Mostra a música que está tocando agora."),
     ("exit", "Remove o bot do canal de voz e limpa a fila."),
+    ("comandos", "Lista todos os comandos do bot com explicação resumida."),
 ]
 
 @app_commands.command(name="comandos", description="Lista todos os comandos do bot com uma explicação resumida.")

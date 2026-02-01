@@ -61,15 +61,14 @@ python main.py
 - `/play_pause` — Alterna entre tocar e pausar a música atual.
 - `/skip` — Pula para a próxima música da fila.
 - `/queue` — Mostra a fila de músicas.
+- `/filter_queue <palavra>` — Busca na fila músicas cujo título contém a palavra (não precisa ser exata; ex.: "gor" encontra "Gorillaz - Feel Good Inc...").
+- `/remove_song_from_queue <posição>` — Remove uma música da fila pela posição (1 = próxima a tocar).
+- `/now_playing` — Mostra a música que está tocando agora (título, link e controles).
 - `/exit` — Remove o bot do canal de voz e limpa a fila.
-
-### /now_playing
-Mostra a música que está tocando no momento no canal de voz.
-- Exibe o título e o link da música atual.
-- Se não houver música tocando, informa que nenhuma música está tocando agora.
 
 ### Outros
 - `/hello` — Mensagem de boas-vindas.
+- `/comandos` — Lista todos os comandos do bot com uma explicação resumida.
 
 ## 6. Observações
 - O bot precisa de permissões de "Conectar" e "Falar" no canal de voz.

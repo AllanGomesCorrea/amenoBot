@@ -255,6 +255,35 @@ async def queue(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("A fila está vazia.", ephemeral=True)
 
+@app_commands.command(name="filter_queue", description="Busca na fila músicas que contêm uma palavra (não precisa ser exata).")
+@app_commands.describe(palavra="Palavra ou trecho para buscar no título das músicas da fila")
+async def filter_queue(interaction: discord.Interaction, palavra: str):
+    queue = get_song_queue(interaction.guild.id)
+    if not queue:
+        await interaction.response.send_message("A fila está vazia.", ephemeral=True)
+        return
+    palavra_lower = palavra.strip().lower()
+    if not palavra_lower:
+        await interaction.response.send_message("Digite uma palavra ou trecho para buscar.", ephemeral=True)
+        return
+    matches = [
+        (idx + 1, title)
+        for idx, (title, _) in enumerate(queue)
+        if palavra_lower in title.lower()
+    ]
+    if not matches:
+        await interaction.response.send_message(
+            f"Nenhuma música na fila contém **{palavra}**.",
+            ephemeral=True
+        )
+        return
+    lines = [f"**Músicas na fila com \"{palavra}\":**\n"]
+    lines.extend(f"{pos}. {title}" for pos, title in matches)
+    text = "\n".join(lines)
+    if len(text) > 2000:
+        text = text[:1997] + "..."
+    await interaction.response.send_message(text, ephemeral=True)
+
 @app_commands.command(name="remove_song_from_queue", description="Remove uma música da fila pela posição.")
 @app_commands.describe(position="Posição na fila (1 = próxima música a tocar)")
 async def remove_song_from_queue(interaction: discord.Interaction, position: int):
