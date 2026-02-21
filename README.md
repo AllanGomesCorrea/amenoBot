@@ -41,9 +41,15 @@ Além disso, instale o **ffmpeg** no seu sistema:
 
 ### Opcional: Docker:
 
+Docker:
 ```bash
 docker build -t amenobot .
-docker run -d --name amenobot amenobot
+docker run --rm -v $(pwd):/app --env-file .env -d --name amenobot amenobot
+```
+
+Docker compose:
+```bash
+docker compose up -d
 ```
 
 ## 4. Execute o bot
