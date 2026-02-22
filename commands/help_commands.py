@@ -6,6 +6,7 @@ COMANDOS = [
     ("add_song", "Adiciona uma música do YouTube ao final da fila."),
     ("play_next", "Adiciona uma música para tocar em seguida (após a atual)."),
     ("favorite_playlist", "Cria uma playlist aleatória com suas músicas favoritas."),
+    ("search_favorites", "Busca músicas nos favoritos e permite escolher no menu para adicionar à fila."),
     ("play_pause", "Pausa ou retoma a música atual."),
     ("skip", "Pula para a próxima música da fila."),
     ("queue", "Mostra as próximas músicas na fila."),

@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ui import View, Button
+from discord.ui import View, Button, Select
 import yt_dlp
 import asyncio
 from components.star_button import StarButton
@@ -68,6 +68,62 @@ class MusicPlayerView(View):
         if self.history:
             return self.history[-1]
         return None
+
+class FavoriteSearchView(View):
+    def __init__(self, results, interaction):
+        super().__init__(timeout=300)  # 5 minutos de timeout
+        self.results = results
+        self.interaction = interaction
+        
+        # Discord Select menu tem limite de 25 opções
+        max_options = min(25, len(results))
+        select = Select(
+            placeholder="Escolha uma música para adicionar à fila...",
+            options=[
+                discord.SelectOption(
+                    label=title[:100] if len(title) <= 100 else title[:97] + "...",
+                    description=url[:100] if len(url) <= 100 else url[:97] + "...",
+                    value=str(idx),
+                    emoji="🎵"
+                )
+                for idx, (_, url, title) in enumerate(results[:max_options])
+            ]
+        )
+        select.callback = self.on_select
+        self.add_item(select)
+    
+    async def on_select(self, select_interaction: discord.Interaction):
+        # Os valores selecionados estão em interaction.data['values']
+        selected_value = select_interaction.data['values'][0]
+        selected_idx = int(selected_value)
+        identifier, url, title = self.results[selected_idx]
+        
+        # Verifica se usuário está em canal de voz
+        user = select_interaction.user
+        if not user.voice or not user.voice.channel:
+            await select_interaction.response.send_message("Você precisa estar em um canal de voz!", ephemeral=True)
+            return
+        
+        await select_interaction.response.defer(ephemeral=False)
+        
+        queue = get_song_queue(select_interaction.guild.id)
+        history = get_song_history(select_interaction.guild.id)
+        
+        # Adiciona à fila usando a URL da base de dados
+        queue.append((title, url))
+        
+        if not select_interaction.guild.voice_client:
+            vc = await user.voice.channel.connect()
+        else:
+            vc = select_interaction.guild.voice_client
+        
+        await select_interaction.followup.send(f"✅ Adicionado à fila: **{title}**", ephemeral=False)
+        
+        bot = select_interaction.client
+        loop = bot.loop
+        
+        if not vc.is_playing() and not vc.is_paused():
+            await play_next_song(select_interaction, vc, queue, history, loop)
 
 @app_commands.command(name="add_song", description="Toque uma música do YouTube na call com fila e controles.")
 @app_commands.describe(url="Link do YouTube")
@@ -283,6 +339,44 @@ async def filter_queue(interaction: discord.Interaction, palavra: str):
     if len(text) > 2000:
         text = text[:1997] + "..."
     await interaction.response.send_message(text, ephemeral=True)
+
+@app_commands.command(name="search_favorites", description="Busca músicas nos favoritos e adiciona à fila clicando no menu.")
+@app_commands.describe(palavra="Palavra ou trecho para buscar no título das músicas favoritas")
+async def search_favorites(interaction: discord.Interaction, palavra: str):
+    palavra_lower = palavra.strip().lower()
+    if not palavra_lower:
+        await interaction.response.send_message("Digite uma palavra ou trecho para buscar.", ephemeral=True)
+        return
+    
+    results = favorite_repo.search_by_title(palavra)
+    if not results:
+        await interaction.response.send_message(
+            f"Nenhuma música favorita contém **{palavra}**.",
+            ephemeral=True
+        )
+        return
+    
+    # Limita a 25 resultados (limite do Select menu do Discord)
+    display_results = results[:25]
+    total_found = len(results)
+    
+    # Cria mensagem com resultados
+    lines = [f"**🎵 Músicas favoritas com \"{palavra}\":**\n"]
+    lines.extend(f"{idx + 1}. {title}" for idx, (_, _, title) in enumerate(display_results))
+    if total_found > 25:
+        lines.append(f"\n⚠️ Mostrando 25 de {total_found} resultados. Use uma busca mais específica para ver mais opções.")
+    text = "\n".join(lines)
+    if len(text) > 2000:
+        text = text[:1997] + "..."
+    
+    # Cria View com Select menu
+    view = FavoriteSearchView(display_results, interaction)
+    
+    await interaction.response.send_message(
+        f"{text}\n\n👇 **Escolha uma música no menu abaixo para adicionar à fila:**",
+        view=view,
+        ephemeral=False
+    )
 
 @app_commands.command(name="remove_song_from_queue", description="Remove uma música da fila pela posição.")
 @app_commands.describe(position="Posição na fila (1 = próxima música a tocar)")

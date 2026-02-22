@@ -57,4 +57,14 @@ class MusicFavoriteRepository:
         random.shuffle(shuffled_favorites)
         return shuffled_favorites
 
+    def search_by_title(self, palavra: str) -> list:
+        """Busca músicas favoritas cujo título contém a palavra (case-insensitive)"""
+        palavra_lower = palavra.strip().lower()
+        if not palavra_lower:
+            return []
+        with sqlite3.connect(self.db_path) as conn:
+            c = conn.cursor()
+            c.execute('SELECT identifier, url, title FROM favorites WHERE LOWER(title) LIKE ?', (f'%{palavra_lower}%',))
+            return c.fetchall()
+
 favorite_repo = MusicFavoriteRepository(os.path.join(os.path.dirname(__file__), '../favorites.db')) 
