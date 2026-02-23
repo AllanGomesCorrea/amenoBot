@@ -77,7 +77,46 @@ python main.py
 - `/hello` — Mensagem de boas-vindas.
 - `/comandos` — Lista todos os comandos do bot com uma explicação resumida.
 
-## 6. Observações
+## 6. Sincronização automática (cron job)
+
+O script `sync.sh` faz duas coisas diariamente:
+1. Puxa a versão mais recente do código do servidor git.
+2. Commita e envia o `favorites.db` para o repositório (apenas se houver mudanças).
+
+Os logs são gravados automaticamente em `/var/log/ameno-bot/sync.log`.
+
+Para configurar no servidor onde o bot roda:
+
+```bash
+# Abra o crontab
+crontab -e
+```
+
+Adicione a linha abaixo para rodar todo dia às 3h da manhã:
+
+```
+0 3 * * * /caminho/para/amenoBot/sync.sh
+```
+
+> Substitua `/caminho/para/amenoBot` pelo caminho absoluto do repositório no servidor.
+
+### Rotação de logs (logrotate)
+
+O arquivo `ameno-bot.logrotate` configura a rotação automática do log, limitando o arquivo a 10 MB e mantendo até 5 arquivos comprimidos.
+
+Para instalar:
+
+```bash
+sudo cp /caminho/para/amenoBot/ameno-bot.logrotate /etc/logrotate.d/ameno-bot
+```
+
+Para testar a configuração:
+
+```bash
+sudo logrotate --debug /etc/logrotate.d/ameno-bot
+```
+
+## 7. Observações
 - O bot precisa de permissões de "Conectar" e "Falar" no canal de voz.
 - O bot funciona em múltiplos servidores, cada um com sua própria fila de músicas.
 - Use o botão ⭐ nas músicas para adicioná-las aos favoritos.
