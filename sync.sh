@@ -12,7 +12,16 @@ echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting sync"
 cd "$(dirname "$0")"
 
 # Pull latest code first so the subsequent push is never rejected
+BEFORE=$(git rev-parse HEAD)
 git pull
+AFTER=$(git rev-parse HEAD)
+
+# Restart docker compose if remote had new changes
+if [ "$BEFORE" != "$AFTER" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Remote changes detected, restarting docker compose"
+    docker compose down
+    docker compose up -d
+fi
 
 # Commit and push favorites.db only if it has changed
 if ! git diff --quiet favorites.db; then
