@@ -88,9 +88,6 @@ Os logs são gravados automaticamente em `/var/log/ameno-bot/sync.log`.
 Para configurar no servidor onde o bot roda:
 
 ```bash
-# Torne o script executável
-chmod +x /caminho/para/amenoBot/sync.sh
-
 # Abra o crontab
 crontab -e
 ```
