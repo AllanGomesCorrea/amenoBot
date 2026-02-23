@@ -17,7 +17,7 @@ git pull
 # Commit and push favorites.db only if it has changed
 if ! git diff --quiet favorites.db; then
     git add favorites.db
-    git commit -m "chore: update favorites.db $(date '+%Y-%m-%d')"
+    git commit -m "chore: update favorites.db $(date '+%Y-%m-%d %H:%M:%S')"
     git push
 fi
 
