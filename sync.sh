@@ -20,6 +20,7 @@ AFTER=$(git rev-parse HEAD)
 if [ "$BEFORE" != "$AFTER" ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Remote changes detected, restarting docker compose"
     docker compose down
+    docker compose build
     docker compose up -d
 fi
 
